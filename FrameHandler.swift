@@ -14,7 +14,6 @@ class FrameHandler: NSObject, ObservableObject {
     private var permissionGranted = false
     private let captureSession = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "sessionQueue")
-    private let context = CIContext()
     
     override init() {
         super.init()
@@ -67,13 +66,29 @@ extension FrameHandler: AVCaptureVideoDataOutputSampleBufferDelegate {
         DispatchQueue.main.async { [unowned self] in
             self.frame = cgImage
         }
+        
+        let detector = ObjectDetector()
+
+        // Assuming you have a UIImage
+        detector.detectObjects(in: cgImage) { observations in
+                    for observation in observations {
+                        let boundingBox = observation.boundingBox
+                        let confidence = observation.confidence
+                        let label = observation.labels.first?.identifier ?? "Unknown"
+                        
+                        // Use these values to draw bounding boxes and labels on your UI
+                        print("Detected \(label) with confidence \(confidence) at \(boundingBox)")
+                    }
+                }
+            }
     }
     
     private func imageFromSampleBuffer(sampleBuffer: CMSampleBuffer) -> CGImage? {
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(<#T##sbuf: CMSampleBuffer##CMSampleBuffer#>) else { return nil }
+        let context = CIContext()
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
         guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return nil }
         
         return cgImage
     }
-}
+
