@@ -26,3 +26,4 @@ version = project.version(35)
 dataset = version.download("yolov8")
 
 !yolo task=detect mode=train model=yolov8m.pt data={dataset.location}/data.yaml epochs=40 imgsz=640
+model.export(format='coreml', nms=True)
